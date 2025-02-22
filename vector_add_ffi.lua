@@ -5,6 +5,7 @@ ffi.cdef[[
     void square_vector(const double* input, double* result, size_t n);
     double* allocate_aligned_memory(size_t n);
     void free_aligned_memory(double* ptr);
+    double* compute_rms_windowed(const double* input, size_t n, size_t window);
 ]]
 
 local vector_add = ffi.load("vector_add")
@@ -53,6 +54,17 @@ function M.square_vector(input, n)
         result_table[i + 1] = result[i]
     end
 
+    return result_table
+end
+
+function M.compute_rms_windowed(input, n, window)
+    local rms_values = vector_add.compute_rms_windowed(input, n, window)
+    local num_windows = math.ceil(n / window)
+    local result_table = {}
+    for i = 0, num_windows - 1 do
+        result_table[i + 1] = rms_values[i]
+    end
+    vector_add.free_aligned_memory(rms_values)
     return result_table
 end
 
