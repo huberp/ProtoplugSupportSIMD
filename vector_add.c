@@ -9,10 +9,10 @@ __declspec(dllexport) void add_vectors(const double* a, const double* b, double*
     __builtin_assume_aligned(b, ALIGN);
     __builtin_assume_aligned(result, ALIGN);
     size_t i;
-    for (i = 0; i < n; i += 4) {
-        __m256d va = _mm256_load_pd(&a[i]);
-        __m256d vb = _mm256_load_pd(&b[i]);
-        __m256d vresult = _mm256_add_pd(va, vb);
+    for (i = 0; i < n; i += 4, a+=4, b+=4) {
+        const __m256d va = _mm256_load_pd(__builtin_assume_aligned(a, ALIGN));
+        const __m256d vb = _mm256_load_pd(__builtin_assume_aligned(b, ALIGN));
+        const __m256d vresult = _mm256_add_pd(va, vb);
         _mm256_storeu_pd(&result[i], vresult);
     }
 }
@@ -21,9 +21,9 @@ __declspec(dllexport) void square_vector(const double* input, double* result, si
     __builtin_assume_aligned(input, ALIGN);
     __builtin_assume_aligned(result, ALIGN);
     size_t i;
-    for (i = 0; i < n; i += 4) {
-        __m256d vinput  = _mm256_load_pd(&input[i]);
-        __m256d vresult = _mm256_mul_pd(vinput, vinput);
+    for (i = 0; i < n; i += 4, input+=4) {
+        const __m256d vinput  = _mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
+        const __m256d vresult = _mm256_mul_pd(vinput, vinput);
         _mm256_storeu_pd(&result[i], vresult);
     }
 }
@@ -33,9 +33,9 @@ __declspec(dllexport) double compute_rms_full(const double* input, size_t n) {
     __builtin_assume_aligned(input, ALIGN);
     size_t i;
     __m256d vsum = _mm256_setzero_pd();
-    for (i = 0; i < n; i += 4) {
-        __m256d vinput = _mm256_load_pd(&input[i]);
-        __m256d vsquare = _mm256_mul_pd(vinput, vinput);
+    for (i = 0; i < n; i += 4, input+=4) {
+        const __m256d vinput = _mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
+        const __m256d vsquare = _mm256_mul_pd(vinput, vinput);
         vsum = _mm256_add_pd(vsum, vsquare);
     }
     double sum[4];
