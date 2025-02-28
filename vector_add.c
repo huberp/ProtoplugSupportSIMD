@@ -34,10 +34,12 @@ PRAGMA_OPTIMIZE_OFF
 
 #endif
 
+#include "simde/check.h"
 #include "simde/x86/avx.h"
+#include "simde/simde-features.h"
 
-#if defined(__AVX__) 
-  
+#if defined(SIMDE_X86_AVX2_NATIVE) 
+  PRAGMA_MESSAGE("AVX2 supported.")
 #else
   PRAGMA_WARNING("AVX2 support is not available. Code will not compile.")
 #endif
@@ -50,10 +52,10 @@ __declspec(dllexport) void add_vectors(const double* a, const double* b, double*
     __builtin_assume_aligned(result, ALIGN);
     size_t i;
     for (i = 0; i < n; i += 4, a+=4, b+=4) {
-        const __m256d va = _mm256_load_pd(__builtin_assume_aligned(a, ALIGN));
-        const __m256d vb = _mm256_load_pd(__builtin_assume_aligned(b, ALIGN));
-        const __m256d vresult = _mm256_add_pd(va, vb);
-        _mm256_storeu_pd(&result[i], vresult);
+        const simde__m256d va = simde_mm256_load_pd(__builtin_assume_aligned(a, ALIGN));
+        const simde__m256d vb = simde_mm256_load_pd(__builtin_assume_aligned(b, ALIGN));
+        const simde__m256d vresult = simde_mm256_add_pd(va, vb);
+        simde_mm256_storeu_pd(&result[i], vresult);
     }
 }
 
@@ -62,8 +64,8 @@ __declspec(dllexport) void square_vector(const double* input, double* result, si
     __builtin_assume_aligned(result, ALIGN);
     size_t i;
     for (i = 0; i < n; i += 4, input+=4) {
-        const __m256d vinput  = _mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
-        const __m256d vresult = _mm256_mul_pd(vinput, vinput);
+        const simde__m256d vinput  = simde_mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
+        const simde__m256d vresult = simde_mm256_mul_pd(vinput, vinput);
         _mm256_storeu_pd(&result[i], vresult);
     }
 }
@@ -72,14 +74,14 @@ __declspec(dllexport) void square_vector(const double* input, double* result, si
 __declspec(dllexport) double compute_rms_full(const double* input, size_t n) {
     __builtin_assume_aligned(input, ALIGN);
     size_t i;
-    __m256d vsum = _mm256_setzero_pd();
+    simde__m256d vsum = simde_mm256_setzero_pd();
     for (i = 0; i < n; i += 4, input+=4) {
-        const __m256d vinput = _mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
-        const __m256d vsquare = _mm256_mul_pd(vinput, vinput);
+        const simde__m256d vinput  = simde_mm256_load_pd( __builtin_assume_aligned(input, ALIGN));
+        const simde__m256d vsquare = simde_mm256_mul_pd(vinput, vinput);
         vsum = _mm256_add_pd(vsum, vsquare);
     }
     double sum[4];
-    _mm256_storeu_pd(sum, vsum);
+    simde_mm256_storeu_pd(sum, vsum);
     double total_sum = sum[0] + sum[1] + sum[2] + sum[3];
     return sqrt(total_sum / n);
 }
@@ -91,24 +93,24 @@ __declspec(dllexport) double* compute_rms_windowed(const double* input, size_t n
     double* rms_values = (double*)_mm_malloc(num_windows * sizeof(double), ALIGN);
     size_t i, j;
     for (i = 0; i < n; i += window) {
-        __m256d vsum = _mm256_setzero_pd();
+        simde__m256d vsum = simde_mm256_setzero_pd();
         size_t limit = (i + window > n) ? n - i : window;
         for (j = 0; j < limit; j += 4) {
             __m256d vinput;
             if (j + 4 <= limit) {
-                vinput = _mm256_load_pd(&input[i + j]);
+                vinput = simde_mm256_load_pd(&input[i + j]);
             } else {
                 double temp[4] = {0, 0, 0, 0};
                 for (size_t k = 0; k < limit - j; ++k) {
                     temp[k] = input[i + j + k];
                 }
-                vinput = _mm256_loadu_pd(temp);
+                vinput = simde_mm256_loadu_pd(temp);
             }
-            __m256d vsquare = _mm256_mul_pd(vinput, vinput);
-            vsum = _mm256_add_pd(vsum, vsquare);
+            simde__m256d vsquare = simde_mm256_mul_pd(vinput, vinput);
+            vsum = simde_mm256_add_pd(vsum, vsquare);
         }
         double sum[4];
-        _mm256_storeu_pd(sum, vsum);
+        simde_mm256_storeu_pd(sum, vsum);
         double total_sum = sum[0] + sum[1] + sum[2] + sum[3];
         rms_values[i / window] = sqrt(total_sum / limit);
     }

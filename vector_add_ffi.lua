@@ -8,7 +8,7 @@ ffi.cdef[[
     double* compute_rms_windowed(const double* input, size_t n, size_t window);
 ]]
 
-local vector_add = ffi.load("build/libvector_add")
+local vector_add = ffi.load("build/vector_add")
 
 local M = {}
 
