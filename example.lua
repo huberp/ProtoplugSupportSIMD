@@ -26,3 +26,9 @@ local result_square = vector_add.square_vector(a, n)
 for i = 1, n do
     print(string.format("result_square[%d] = %f", i - 1, result_square[i]))
 end
+
+-- now show how the windowed rms works
+local result_rms_windows = vector_add.compute_rms_windowed(a, n, 12)
+for i = 1, #result_rms_windows do
+    print(string.format("result_rms[%d] = %f", i - 1, result_rms_windows[i]))
+end
