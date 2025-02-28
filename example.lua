@@ -1,7 +1,7 @@
 local ffi = require("ffi")
 local vector_add = require("vector_add_ffi")
 
-local n = 64
+local n = 256
 local a = vector_add.allocate_aligned_memory(n)
 local b = vector_add.allocate_aligned_memory(n)
 

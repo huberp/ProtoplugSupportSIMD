@@ -8,7 +8,7 @@ ffi.cdef[[
     double* compute_rms_windowed(const double* input, size_t n, size_t window);
 ]]
 
-local vector_add = ffi.load("vector_add")
+local vector_add = ffi.load("build/libvector_add")
 
 local M = {}
 
@@ -30,7 +30,7 @@ local function create_aligned_memory(n)
 end
 
 function M.add_vectors(a, b, n)
-    local padded_n = (n + 3) & ~3
+    local padded_n = bit.band(n + 3, bit.bnot(3))
     local result = create_aligned_memory(n)
 
     vector_add.add_vectors(a, b, result, padded_n)
@@ -44,7 +44,7 @@ function M.add_vectors(a, b, n)
 end
 
 function M.square_vector(input, n)
-    local padded_n = (n + 3) & ~3
+    local padded_n = bit.band(n + 3, bit.bnot(3))
     local result = create_aligned_memory(n)
 
     vector_add.square_vector(input, result, padded_n)
@@ -64,7 +64,6 @@ function M.compute_rms_windowed(input, n, window)
     for i = 0, num_windows - 1 do
         result_table[i + 1] = rms_values[i]
     end
-    vector_add.free_aligned_memory(rms_values)
     return result_table
 end
 

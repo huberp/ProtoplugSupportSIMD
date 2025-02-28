@@ -3,9 +3,12 @@ project(ProtoplugSupportSIMD)
 
 #set(CMAKE_C_COMPILER "/mingw64/bin/gcc")
 
-set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD 99)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -mavx -fopt-info-vec-all -S -fverbose-asm")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -mavx")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -mavx /arch:AVX2")
+
+#https://stackoverflow.com/questions/137038/how-do-you-get-assembler-output-from-c-c-source-in-gcc
+#Do get access to assembly
 
 message (${CMAKE_C_COMPILER})
 message (${CMAKE_CXX_COMPILER})

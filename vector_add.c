@@ -1,6 +1,46 @@
-#include <immintrin.h>
 #include <stddef.h>
 #include <math.h>
+
+//https://learn.arm.com/learning-paths/cross-platform/intrinsics/simde/
+#define SIMDE_ENABLE_NATIVE_ALIASES
+
+//https://stackoverflow.com/questions/171435/portability-of-warning-preprocessor-directive
+#ifdef __GNUC__
+//from https://gcc.gnu.org/onlinedocs/gcc/Diagnostic-Pragmas.html
+//Instead of put such pragma in code:
+//#pragma GCC diagnostic ignored "-Wformat"
+//use:
+//PRAGMA_GCC(diagnostic ignored "-Wformat")
+#define DO_PRAGMA(x) _Pragma (#x)
+#define PRAGMA_GCC(x) DO_PRAGMA(GCC #x)
+
+#define PRAGMA_MESSAGE(x) DO_PRAGMA(message #x)
+#define PRAGMA_WARNING(x) DO_PRAGMA(warning #x)
+#endif //__GNUC__
+#ifdef _MSC_VER
+/*
+#define PRAGMA_OPTIMIZE_OFF __pragma(optimize("", off))
+// These two lines are equivalent
+#pragma optimize("", off)
+PRAGMA_OPTIMIZE_OFF
+*/
+#define PRAGMA_GCC(x)
+// https://support2.microsoft.com/kb/155196?wa=wsignin1.0
+#define __STR2__(x) #x
+#define __STR1__(x) __STR2__(x)
+#define __PRAGMA_LOC__ __FILE__ "("__STR1__(__LINE__)") "
+#define PRAGMA_WARNING(x) __pragma(message(__PRAGMA_LOC__ ": warning: " #x))
+#define PRAGMA_MESSAGE(x) __pragma(message(__PRAGMA_LOC__ ": message : " #x))
+
+#endif
+
+#include "simde/x86/avx.h"
+
+#if defined(__AVX__) 
+  
+#else
+  PRAGMA_WARNING("AVX2 support is not available. Code will not compile.")
+#endif
 
 const int ALIGN = 64;
 
