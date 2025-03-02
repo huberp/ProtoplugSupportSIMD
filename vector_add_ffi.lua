@@ -84,7 +84,7 @@ local function create_aligned_memory(n)
 	return resTableWithGC, simdPegisterPaddedN
 end
 
-function M.add_vectors_into(op1, op2, result,n)
+function M.add_vectors_into(op1, op2, result, n)
     vector_add.add_vectors(op1(), op2(), result(), n)
     return result, n
 end
