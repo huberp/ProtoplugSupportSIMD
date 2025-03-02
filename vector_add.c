@@ -47,15 +47,19 @@ PRAGMA_OPTIMIZE_OFF
 const int ALIGN = 64;
 
 __declspec(dllexport) void add_vectors(const double* a, const double* b, double* result, size_t n) {
-    __builtin_assume_aligned(a, ALIGN);
-    __builtin_assume_aligned(b, ALIGN);
-    __builtin_assume_aligned(result, ALIGN);
-    size_t i;
-    for (i = 0; i < n; i += 4, a+=4, b+=4) {
-        const simde__m256d va = simde_mm256_load_pd(__builtin_assume_aligned(a, ALIGN));
-        const simde__m256d vb = simde_mm256_load_pd(__builtin_assume_aligned(b, ALIGN));
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    //printf("a: %p, b: %p, result: %p\n", _a, _b, result);
+    //for (size_t i = 0; i < n; ++i) {  // Process in chunks of 4 doubles
+    //    printf("DLL i[%d]: %f, %f\n", i, a[i], b[i]);
+    //}
+    for (size_t i = 0; i < n; i += 4, _a+=4, _b+=4, _result+=4) {
+        const simde__m256d va = simde_mm256_load_pd(__builtin_assume_aligned(_a, ALIGN));
+        const simde__m256d vb = simde_mm256_load_pd(__builtin_assume_aligned(_b, ALIGN));
         const simde__m256d vresult = simde_mm256_add_pd(va, vb);
-        simde_mm256_storeu_pd(&result[i], vresult);
+        simde_mm256_storeu_pd(_result, vresult);
     }
 }
 
