@@ -6,15 +6,16 @@ ffi.cdef[[
 	void *_aligned_malloc(size_t, size_t);
 	void _aligned_free(void *);
 	typedef double* aligned_double_ptr_t __attribute__ ((aligned (64)));
-    void    add_vectors  (const double* a, const double* b, double* result, size_t n);
-    void    square_vector(const double* input,              double* result, size_t n);
+    void add_vectors      (const double* a, const double* b, double* result, size_t n);
+    void square_vector    (const double* input,              double* result, size_t n);
+    void compute_abs_ratio(const double* a, const double* b, double* result, size_t n);
     double* compute_rms_windowed(const double* input, size_t n, size_t window);
 
     double* allocate_aligned_memory(size_t n);
     void free_aligned_memory(double* ptr);
 ]]
 
-local vector_add = ffi.load("vector_add")
+local simdLib = ffi.load("vector_add")
 
 local M = {}
 
@@ -38,7 +39,7 @@ function M.simdRegisterPaddingSize(n)
 end
 --
 --  Create Memory Aligned Buffer for use by SIMD optimized functions
---  NOTES: 
+--  NOTES:
 --  I first tried ffi.gc to tie memory ptr and a finalizer and return only the cdata ptr.
 --  But it turns out that this will lead to too unexpected early gc, while the ptr is actually still in use.
 --  Therefore the "native" pointer is wrapped in a LUA table AND only this table has the finalizer
@@ -85,12 +86,12 @@ local function create_aligned_memory(n)
 end
 
 function M.add_vectors_into(op1, op2, result, n)
-    vector_add.add_vectors(op1(), op2(), result(), n)
+    simdLib.add_vectors(op1(), op2(), result(), n)
     return result, n
 end
 
 function M.square_vector_into(input, result, n)
-    vector_add.square_vector(input(), result(), n)
+    simdLib.square_vector(input(), result(), n)
     return result, n
 end
 
@@ -108,13 +109,18 @@ function M.square_vector(input, n)
 end
 
 function M.compute_rms_windowed(input, n, window)
-    local rms_values = vector_add.compute_rms_windowed(input(), n, window)
+    local rms_values = simdLib.compute_rms_windowed(input(), n, window)
     local num_windows = math.ceil(n / window)
     local result_table = {}
     for i = 0, num_windows - 1 do
         result_table[i + 1] = rms_values[i]
     end
     return result_table
+end
+
+function M.compute_abs_ratio(a, b, result, n)
+    simdLib.compute_abs_ratio(a, b, result, n)
+    return result, n
 end
 
 function M.allocate_aligned_memory(n)

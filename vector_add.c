@@ -121,6 +121,35 @@ __declspec(dllexport) double* compute_rms_windowed(const double* input, size_t n
     return rms_values;
 }
 
+/**
+ * Computes the ratio of the absolute value of the sum of two vectors to the sum of their absolute values.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
+__declspec(dllexport) void compute_abs_ratio(const double* a, const double* b, double* result, size_t n) {
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    for (size_t i = 0; i < n; i += 4, _a += 4, _b += 4, _result += 4) {
+        const simde__m256d va = simde_mm256_load_pd(_a);
+        const simde__m256d vb = simde_mm256_load_pd(_b);
+
+        const simde__m256d vabs_a = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), va); // abs(a)
+        const simde__m256d vabs_b = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), vb); // abs(b)
+        const simde__m256d vabs_sum = simde_mm256_add_pd(vabs_a, vabs_b); // abs(a) + abs(b)
+
+        const simde__m256d vsum = simde_mm256_add_pd(va, vb); // a + b
+        const simde__m256d vabs_sum_ab = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), vsum); // abs(a + b)
+
+        const simde__m256d vresult = simde_mm256_div_pd(vabs_sum_ab, vabs_sum); // abs(a + b) / (abs(a) + abs(b))
+        simde_mm256_storeu_pd(_result, vresult);
+    }
+}
 
 __declspec(dllexport) double* allocate_aligned_memory(size_t n) {
     size_t padded_n = (n + 3) & ~3; // Ensure n is a multiple of 4 for AVX
