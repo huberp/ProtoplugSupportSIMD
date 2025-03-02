@@ -6,9 +6,10 @@ ffi.cdef[[
 	void *_aligned_malloc(size_t, size_t);
 	void _aligned_free(void *);
 	typedef double* aligned_double_ptr_t __attribute__ ((aligned (64)));
-    void add_vectors      (const double* a, const double* b, double* result, size_t n);
-    void square_vector    (const double* input,              double* result, size_t n);
-    void compute_abs_ratio(const double* a, const double* b, double* result, size_t n);
+    void add_vectors       (const double* a, const double* b, double* result, size_t n);
+    void square_vector     (const double* input,              double* result, size_t n);
+    void compute_abs_ratio (const double* a, const double* b, double* result, size_t n);
+    void squared_difference(const double* a, const double* b, double* result, size_t n);
     double* compute_rms_windowed(const double* input, size_t n, size_t window);
 
     double* allocate_aligned_memory(size_t n);
@@ -120,6 +121,11 @@ end
 
 function M.compute_abs_ratio(a, b, result, n)
     simdLib.compute_abs_ratio(a, b, result, n)
+    return result, n
+end
+
+function M.squared_difference(a, b, result, n)
+    simdLib.squared_difference(a, b, result, n)
     return result, n
 end
 

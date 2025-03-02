@@ -151,6 +151,30 @@ __declspec(dllexport) void compute_abs_ratio(const double* a, const double* b, d
     }
 }
 
+/**
+ * Computes the squared difference of two vectors.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
+__declspec(dllexport) void squared_difference(const double* a, const double* b, double* result, size_t n) {
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    for (size_t i = 0; i < n; i += 4, _a += 4, _b += 4, _result += 4) {
+        const simde__m256d va = simde_mm256_load_pd(_a);
+        const simde__m256d vb = simde_mm256_load_pd(_b);
+        const simde__m256d vdiff = simde_mm256_sub_pd(va, vb);
+        const simde__m256d vsquared_diff = simde_mm256_mul_pd(vdiff, vdiff);
+        simde_mm256_storeu_pd(_result, vsquared_diff);
+    }
+}
+
+
 __declspec(dllexport) double* allocate_aligned_memory(size_t n) {
     size_t padded_n = (n + 3) & ~3; // Ensure n is a multiple of 4 for AVX
     return __builtin_assume_aligned( (double*)_mm_malloc(padded_n * sizeof(double), ALIGN), ALIGN );

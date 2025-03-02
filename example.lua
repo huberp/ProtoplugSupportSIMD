@@ -104,3 +104,33 @@ local function example_rms_window()
 end
 
 example_rms_window()
+
+local function example_squared_difference()
+    local n = 8
+    local a = vector_add.allocate_aligned_memory(n)
+    local b = vector_add.allocate_aligned_memory(n)
+    local result = vector_add.allocate_aligned_memory(n)
+
+    -- Initialize a and b with some values
+    local _a = a()
+    local _b = b()
+    local j = 0 -- gives sequence 0,1,0,1,0,1,0,1
+    local fac = -1
+    for i = 0, n - 1 do
+        j=1-j
+        fac = -1 + (2*j) -- gives sequence -1,1,-1,1,-1,1,-1,1
+        _a[i] = i + 1
+        _b[i] = (i + 1) * 2 * fac
+    end
+
+    -- Call the squared_difference function
+    vector_add.squared_difference(a(), b(), result(), n)
+    local _result = result()
+
+    -- Output the result of squared_difference to the console
+    for i = 0, n - 1 do
+        print(string.format("squared_difference[%d] = %f", i, _result[i]))
+    end
+end
+
+example_squared_difference()
