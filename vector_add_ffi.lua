@@ -119,13 +119,13 @@ function M.compute_rms_windowed(input, n, window)
     return result_table
 end
 
-function M.compute_abs_ratio(a, b, result, n)
-    simdLib.compute_abs_ratio(a, b, result, n)
+function M.compute_abs_ratio_into(a, b, result, n)
+    simdLib.compute_abs_ratio(a(), b(), result(), n)
     return result, n
 end
 
-function M.squared_difference(a, b, result, n)
-    simdLib.squared_difference(a, b, result, n)
+function M.squared_difference_into(a, b, result, n)
+    simdLib.squared_difference(a(), b(), result(), n)
     return result, n
 end
 
