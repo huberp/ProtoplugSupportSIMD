@@ -5,7 +5,7 @@ project(ProtoplugSupportSIMD)
 
 set(CMAKE_C_STANDARD 99)
 #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -mavx -fopt-info-vec-all -S -fverbose-asm")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 -mavx /arch:AVX2")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O2 /arch:AVX2")
 
 #https://stackoverflow.com/questions/137038/how-do-you-get-assembler-output-from-c-c-source-in-gcc
 #Do get access to assembly
@@ -23,3 +23,11 @@ add_executable(main_exe main.c)
 
 # Link the executable with the library
 target_link_libraries(main_exe vector_simde_avx2)
+
+# Add a release build configuration
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
+
+if(CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3")
+    set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+endif()

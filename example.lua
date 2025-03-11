@@ -136,9 +136,9 @@ end
 example_squared_difference()
 
 local function example_compute_a_plus_bx()
-    local n = 8
+    local n = 1024
     local a = 10000.0
-    local b = 2.0
+    local b = 0.5
     local x = vector_add.allocate_aligned_memory(n)
     local result = vector_add.allocate_aligned_memory(n)
 
