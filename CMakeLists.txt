@@ -16,10 +16,10 @@ message (${CMAKE_CXX_COMPILER})
 #message (${CMAKE_CXX_COMPILER_RANLIB})
 
 # Add the library
-add_library(vector_add SHARED vector_add.c)
+add_library(vector_simde_avx2 SHARED vector_simde_avx2.c)
 
 # Add the executable
 add_executable(main_exe main.c)
 
 # Link the executable with the library
-target_link_libraries(main_exe vector_add)
+target_link_libraries(main_exe vector_simde_avx2)

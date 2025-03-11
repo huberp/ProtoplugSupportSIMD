@@ -1,5 +1,5 @@
 local ffi = require("ffi")
-local vector_add = require("vector_add_ffi")
+local vector_add = require("vector_simd")
 
 -- Example usage of compute_abs_ratio
 local function example_compute_abs_ratio()
@@ -22,7 +22,7 @@ local function example_compute_abs_ratio()
     end
 
     -- Compute the abs(a + b) / (abs(a) + abs(b)) ratio
-    vector_add.compute_abs_ratio(a(), b(), result(), n)
+    vector_add.compute_abs_ratio_into(a, b, result, n)
 
     -- Print the result
     for i = 0, n - 1 do
@@ -124,7 +124,7 @@ local function example_squared_difference()
     end
 
     -- Call the squared_difference function
-    vector_add.squared_difference(a(), b(), result(), n)
+    vector_add.squared_difference_into(a, b, result, n)
     local _result = result()
 
     -- Output the result of squared_difference to the console
@@ -134,3 +134,28 @@ local function example_squared_difference()
 end
 
 example_squared_difference()
+
+local function example_compute_a_plus_bx()
+    local n = 8
+    local a = 10000.0
+    local b = 2.0
+    local x = vector_add.allocate_aligned_memory(n)
+    local result = vector_add.allocate_aligned_memory(n)
+
+    -- Initialize x with some values
+    local _x = x()
+    for i = 0, n - 1 do
+        _x[i] = i
+    end
+
+    -- Call the compute_a_plus_bx function
+    vector_add.compute_a_plus_bx_into(a, b, x, result, n)
+    local _result = result()
+
+    -- Output the result of compute_a_plus_bx to the console
+    for i = 0, n - 1 do
+        print(string.format("compute_a_plus_bx[%d] = %f", i, _result[i]))
+    end
+end
+
+example_compute_a_plus_bx()

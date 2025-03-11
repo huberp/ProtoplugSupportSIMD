@@ -174,6 +174,30 @@ __declspec(dllexport) void squared_difference(const double* a, const double* b, 
     }
 }
 
+/**
+ * Computes a + b * x for each element in the array x.
+ * The result is stored in the output array.
+ *
+ * @param a The scalar value to be added.
+ * @param b The scalar value to be multiplied with each element of x.
+ * @param x The input array, aligned to ALIGN.
+ * @param result The output array, aligned to ALIGN.
+ * @param n The number of elements in the input and output arrays.
+ */
+__declspec(dllexport) void compute_a_plus_bx(double a, double b, const double* x, double* result, size_t n) {
+    const double* _x      = __builtin_assume_aligned(x, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    const simde__m256d va = simde_mm256_set1_pd(a);
+    const simde__m256d vb = simde_mm256_set1_pd(b);
+
+    for (size_t i = 0; i < n; i += 4, _x += 4, _result += 4) {
+        const simde__m256d vx = simde_mm256_load_pd(_x);
+        const simde__m256d vbx = simde_mm256_mul_pd(vb, vx);
+        const simde__m256d vresult = simde_mm256_add_pd(va, vbx);
+        simde_mm256_storeu_pd(_result, vresult);
+    }
+}
 
 __declspec(dllexport) double* allocate_aligned_memory(size_t n) {
     size_t padded_n = (n + 3) & ~3; // Ensure n is a multiple of 4 for AVX
