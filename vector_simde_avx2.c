@@ -46,15 +46,20 @@ PRAGMA_OPTIMIZE_OFF
 
 const int ALIGN = 64;
 
+/**
+ * Computes a + b for each element in the arrays a and b.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
 __declspec(dllexport) void add_vectors(const double* a, const double* b, double* result, size_t n) {
     const double* _a      = __builtin_assume_aligned(a, ALIGN);
     const double* _b      = __builtin_assume_aligned(b, ALIGN);
           double* _result = __builtin_assume_aligned(result, ALIGN);
 
-    //printf("a: %p, b: %p, result: %p\n", _a, _b, result);
-    //for (size_t i = 0; i < n; ++i) {  // Process in chunks of 4 doubles
-    //    printf("DLL i[%d]: %f, %f\n", i, a[i], b[i]);
-    //}
     for (size_t i = 0; i < n; i += 4, _a+=4, _b+=4, _result+=4) {
         const simde__m256d va = simde_mm256_load_pd(__builtin_assume_aligned(_a, ALIGN));
         const simde__m256d vb = simde_mm256_load_pd(__builtin_assume_aligned(_b, ALIGN));
@@ -63,6 +68,88 @@ __declspec(dllexport) void add_vectors(const double* a, const double* b, double*
     }
 }
 
+/**
+ * Computes a - b for each element in the arrays a and b.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
+__declspec(dllexport) void sub_vectors(const double* a, const double* b, double* result, size_t n) {
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    for (size_t i = 0; i < n; i += 4, _a += 4, _b += 4, _result += 4) {
+        const simde__m256d va = simde_mm256_load_pd(_a);
+        const simde__m256d vb = simde_mm256_load_pd(_b);
+        const simde__m256d vresult = simde_mm256_sub_pd(va, vb);
+        simde_mm256_storeu_pd(_result, vresult);
+    }
+}
+
+/**
+ * Computes a * b for each element in the arrays a and b.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
+__declspec(dllexport) void mul_vectors(const double* a, const double* b, double* result, size_t n) {
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    for (size_t i = 0; i < n; i += 4, _a += 4, _b += 4, _result += 4) {
+        const simde__m256d va = simde_mm256_load_pd(_a);
+        const simde__m256d vb = simde_mm256_load_pd(_b);
+        const simde__m256d vresult = simde_mm256_mul_pd(va, vb);
+        simde_mm256_storeu_pd(_result, vresult);
+    }
+}
+
+/**
+ * Computes abs(abs(a + b) - abs(a) - abs(b)) for each element in the arrays a and b.
+ * The result is stored in the output array.
+ *
+ * @param a The first input vector, aligned to ALIGN.
+ * @param b The second input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
+__declspec(dllexport) void compute_abs_diff_sum(const double* a, const double* b, double* result, size_t n) {
+    const double* _a      = __builtin_assume_aligned(a, ALIGN);
+    const double* _b      = __builtin_assume_aligned(b, ALIGN);
+          double* _result = __builtin_assume_aligned(result, ALIGN);
+
+    for (size_t i = 0; i < n; i += 4, _a += 4, _b += 4, _result += 4) {
+        const simde__m256d va = simde_mm256_load_pd(_a);
+        const simde__m256d vb = simde_mm256_load_pd(_b);
+
+        const simde__m256d vsum = simde_mm256_add_pd(va, vb); // a + b
+        const simde__m256d vabs_sum = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), vsum); // abs(a + b)
+        const simde__m256d vabs_a = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), va); // abs(a)
+        const simde__m256d vabs_b = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), vb); // abs(b)
+
+        const simde__m256d vdiff = simde_mm256_sub_pd(simde_mm256_sub_pd(vabs_sum, vabs_a), vabs_b); // abs(a + b) - abs(a) - abs(b)
+        const simde__m256d vabs_diff = simde_mm256_andnot_pd(simde_mm256_set1_pd(-0.0), vdiff); // abs(abs(a + b) - abs(a) - abs(b))
+
+        simde_mm256_storeu_pd(_result, vabs_diff);
+    }
+}
+
+/**
+ * Computes the square of each element in the input array.
+ * The result is stored in the output array.
+ *
+ * @param input The input vector, aligned to ALIGN.
+ * @param result The output vector, aligned to ALIGN.
+ * @param n The number of elements in the input and output vectors.
+ */
 __declspec(dllexport) void square_vector(const double* input, double* result, size_t n) {
     __builtin_assume_aligned(input, ALIGN);
     __builtin_assume_aligned(result, ALIGN);
@@ -74,7 +161,13 @@ __declspec(dllexport) void square_vector(const double* input, double* result, si
     }
 }
 
-
+/**
+ * Computes the root mean square (RMS) of the input array.
+ *
+ * @param input The input vector, aligned to ALIGN.
+ * @param n The number of elements in the input vector.
+ * @return The RMS value.
+ */
 __declspec(dllexport) double compute_rms_full(const double* input, size_t n) {
     __builtin_assume_aligned(input, ALIGN);
     size_t i;
@@ -90,7 +183,14 @@ __declspec(dllexport) double compute_rms_full(const double* input, size_t n) {
     return sqrt(total_sum / n);
 }
 
-
+/**
+ * Computes the RMS value for each window in the input array.
+ *
+ * @param input The input vector, aligned to ALIGN.
+ * @param n The number of elements in the input vector.
+ * @param window The size of each window.
+ * @return A pointer to the array of RMS values for each window.
+ */
 __declspec(dllexport) double* compute_rms_windowed(const double* input, size_t n, size_t window) {
     __builtin_assume_aligned(input, ALIGN);
     size_t num_windows = (n + window - 1) / window;
@@ -199,11 +299,22 @@ __declspec(dllexport) void compute_a_plus_bx(double a, double b, const double* x
     }
 }
 
+/**
+ * Allocates aligned memory for a vector.
+ *
+ * @param n The number of elements in the vector.
+ * @return A pointer to the allocated memory.
+ */
 __declspec(dllexport) double* allocate_aligned_memory(size_t n) {
     size_t padded_n = (n + 3) & ~3; // Ensure n is a multiple of 4 for AVX
     return __builtin_assume_aligned( (double*)_mm_malloc(padded_n * sizeof(double), ALIGN), ALIGN );
 }
 
+/**
+ * Frees the aligned memory allocated for a vector.
+ *
+ * @param ptr The pointer to the allocated memory.
+ */
 __declspec(dllexport) void free_aligned_memory(double* ptr) {
     _mm_free(ptr);
 }

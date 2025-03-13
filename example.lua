@@ -1,39 +1,7 @@
 local ffi = require("ffi")
 local vector_add = require("vector_simd")
 
--- Example usage of compute_abs_ratio
-local function example_compute_abs_ratio()
-    -- Define the size of the vectors
-    local n = 8
-
-    -- Allocate aligned memory for the input and output vectors
-    local a, _ = vector_add.allocate_aligned_memory(n)
-    local b, _ = vector_add.allocate_aligned_memory(n)
-    local result, _ = vector_add.allocate_aligned_memory(n)
-
-    -- Initialize the input vectors with some values
-    local j = 0 -- gives sequence 0,1,0,1,0,1,0,1
-    local fac = -1
-    for i = 0, n - 1 do
-        j=1-j
-        fac = -1 + (2*j) -- gives sequence -1,1,-1,1,-1,1,-1,1
-        a()[i] = i + 1
-        b()[i] = (i + 1) * 2 * fac
-    end
-
-    -- Compute the abs(a + b) / (abs(a) + abs(b)) ratio
-    vector_add.compute_abs_ratio_into(a, b, result, n)
-
-    -- Print the result
-    for i = 0, n - 1 do
-        print(string.format("result[%d] = %f", i, result()[i]))
-    end
-end
-
--- Call the example function
-example_compute_abs_ratio()
-
--- Example usage of compute_abs_ratio
+-- Example usage of add-vectors
 local function example_add()
     local n = 256
     local a = vector_add.allocate_aligned_memory(n)
@@ -59,8 +27,77 @@ end
 
 example_add()
 
+-- Example usage of sub_vectors
+local function example_sub_vectors()
+    local n = 8
+    local a, _ = vector_add.allocate_aligned_memory(n)
+    local b, _ = vector_add.allocate_aligned_memory(n)
+    local result, _ = vector_add.allocate_aligned_memory(n)
+
+    -- Initialize the input vectors with some values
+    for i = 0, n - 1 do
+        a()[i] = i + 1
+        b()[i] = n - i
+    end
+
+    -- Call the sub_vectors function
+    vector_add.sub_vectors_into(a, b, result, n)
+
+    -- Output the result to the console
+    for i = 0, n - 1 do
+        print(string.format("sub_vectors[%d] = %f", i, result()[i]))
+    end
+end
+example_sub_vectors()
+
+-- Example usage of mul_vectors
+local function example_mul_vectors()
+    local n = 8
+    local a, _ = vector_add.allocate_aligned_memory(n)
+    local b, _ = vector_add.allocate_aligned_memory(n)
+    local result, _ = vector_add.allocate_aligned_memory(n)
+
+    -- Initialize the input vectors with some values
+    for i = 0, n - 1 do
+        a()[i] = i + 1
+        b()[i] = n - i
+    end
+
+    -- Call the mul_vectors function
+    vector_add.mul_vectors_into(a, b, result, n)
+
+    -- Output the result to the console
+    for i = 0, n - 1 do
+        print(string.format("mul_vectors[%d] = %f", i, result()[i]))
+    end
+end
+example_mul_vectors()
+
+-- Example usage of compute_abs_diff_sum
+local function example_compute_abs_diff_sum()
+    local n = 8
+    local a, _ = vector_add.allocate_aligned_memory(n)
+    local b, _ = vector_add.allocate_aligned_memory(n)
+    local result, _ = vector_add.allocate_aligned_memory(n)
+
+    -- Initialize the input vectors with some values
+    for i = 0, n - 1 do
+        a()[i] =  0.5
+        b()[i] =  0.3
+    end
+
+    -- Call the compute_abs_diff_sum function
+    vector_add.compute_abs_diff_sum_into(a, b, result, n)
+
+    -- Output the result to the console
+    for i = 0, n - 1 do
+        print(string.format("compute_abs_diff_sum[%d] = %f", i, result()[i]))
+    end
+end
+example_compute_abs_diff_sum()
+
 local function example_square()
-    local n = 256
+    local n = 16
     local a = vector_add.allocate_aligned_memory(n)
     local b = vector_add.allocate_aligned_memory(n)
 
@@ -136,7 +173,7 @@ end
 example_squared_difference()
 
 local function example_compute_a_plus_bx()
-    local n = 1024
+    local n = 16
     local a = 10000.0
     local b = 0.5
     local x = vector_add.allocate_aligned_memory(n)
@@ -159,3 +196,4 @@ local function example_compute_a_plus_bx()
 end
 
 example_compute_a_plus_bx()
+
