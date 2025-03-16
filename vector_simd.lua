@@ -72,7 +72,9 @@ end
 -- @param n The number of elements in the vectors.
 -- @return The result vector and the padded size.
 function M.add_vectors_into(op1, op2, result, n)
+    print("add into.1"..tostring(op1()).." "..tostring(op2()).." "..tostring(result()).." "..tostring(n).."; "..tostring(simdLib.add_vectors))
     simdLib.add_vectors(op1(), op2(), result(), n)
+    print("add into.2 "..tostring(err))
     return result, n
 end
 

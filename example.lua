@@ -6,7 +6,6 @@ local function example_add()
     local n = 256
     local a = vector_add.allocate_aligned_memory(n)
     local b = vector_add.allocate_aligned_memory(n)
-
     -- Initialize a and b with some values
     local _a = a()
     local _b = b()
@@ -14,21 +13,23 @@ local function example_add()
         _a[i] = i
         _b[i] = n - i
     end
-
     -- Call the add_vectors function
     local result_add = vector_add.add_vectors(a, b, n)
     local _result_add = result_add()
-    print("result_add: ", result_add)
     -- Output the result of add_vectors to the console
     for i = 1, n-1 do
         print(string.format("a[%d] = %d; b[%d] = %d --> result_add[%d] = %f", i, _a[i], i, _b[i], i, _result_add[i]))
     end
+    return result_add
 end
 
 example_add()
 
+error("Stop here")
+
 -- Example usage of sub_vectors
 local function example_sub_vectors()
+    print("example_sub_vectors")
     local n = 8
     local a, _ = vector_add.allocate_aligned_memory(n)
     local b, _ = vector_add.allocate_aligned_memory(n)
